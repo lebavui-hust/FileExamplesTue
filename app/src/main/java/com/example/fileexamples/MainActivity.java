@@ -1,15 +1,23 @@
 package com.example.fileexamples;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.Manifest;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -59,7 +67,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 try {
-                    InputStream is = openFileInput("internal_data.txt");
+                    // InputStream is = openFileInput("internal_data.txt");
+
+                    String filePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/savedata.txt";
+                    File file = new File(filePath);
+                    InputStream is = new FileInputStream(file);
+
                     BufferedReader reader = new BufferedReader(new InputStreamReader(is));
                     String str = "";
                     String line = "";
@@ -79,7 +92,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 try {
-                    OutputStream os = openFileOutput("internal_data.txt", 0);
+                    // OutputStream os = openFileOutput("internal_data.txt", 0);
+
+                    String filePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/savedata.txt";
+                    File file = new File(filePath);
+                    OutputStream os = new FileOutputStream(file);
+
                     OutputStreamWriter writer = new OutputStreamWriter(os);
                     writer.write(editContent.getText().toString());
                     writer.flush();
@@ -92,6 +110,29 @@ public class MainActivity extends AppCompatActivity {
         });
 
         ReadTextFromRawFile();
+
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                Log.v("TAG", "Permission denied");
+                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 123);
+            } else
+                Log.v("TAG", "Permission granted");
+        }
+
+        File file = Environment.getExternalStorageDirectory();
+        String[] subFiles = file.list();
+        for (int i = 0; i < subFiles.length; i++)
+            Log.v("TAG", subFiles[i]);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == 123)
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                Log.v("TAG", "Permission granted");
+            else
+                Log.v("TAG", "Permission denied");
     }
 
     private void ReadTextFromRawFile() {
